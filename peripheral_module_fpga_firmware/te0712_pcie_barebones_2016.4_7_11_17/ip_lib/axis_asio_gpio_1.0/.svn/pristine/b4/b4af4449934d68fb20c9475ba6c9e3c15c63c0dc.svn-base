@@ -1,0 +1,33 @@
+package require xilinx::board 1.0
+namespace import ::xilinx::board::*
+
+
+set instname [current_inst]
+set f_xdc [add_ipfile -usedIn  [list synthesis implementation board ] -force ${instname}_board.xdc]
+puts_ipfile $f_xdc "#--------------------Physical Constraints-----------------\n"
+
+# If board not selected, exit
+if { [get_project_property BOARD] == "" } {
+    close_ipfile $f_xdc
+    return 
+}
+
+# If IP is not using using board flow, exit
+#if { [get_param PARAM_VALUE.USE_BOARD_FLOW] == false } {
+#    close_ipfile $f_xdc
+#    return 
+#}
+
+set instname [current_inst]
+
+# P0 first..
+set board_if [get_property PARAM_VALUE.P0_BOARD_INTERFACE]
+set P0_width [get_property PARAM_VALUE.C_P0_BITS]
+
+# TODO we can not populate the drop down as it we should.. but Custom is not valid so we test for it
+if { $board_if ne "Custom"} {
+        board_add_tri_state_port_constraints $f_xdc $board_if TRI_I P0_i TRI_O P0_o TRI_T P0_t $P0_width
+}
+
+
+close_ipfile $f_xdc
